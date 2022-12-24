@@ -2,6 +2,7 @@
 using MyTodo.ViewModels;
 using MyTodo.Views;
 using MyToDo.Service;
+using MyToDo.ViewModels;
 using Prism.DryIoc;
 using Prism.Ioc;
 using System;

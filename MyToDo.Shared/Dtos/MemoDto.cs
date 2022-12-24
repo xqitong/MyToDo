@@ -10,7 +10,6 @@ namespace MyToDo.Shared.Dtos
     {
         private string title;
         private string content;
-        private int status;
 
         public string Title
         {
@@ -30,5 +29,6 @@ namespace MyToDo.Shared.Dtos
                 OnPropertyChanged();
             }
         }
+
     }
 }

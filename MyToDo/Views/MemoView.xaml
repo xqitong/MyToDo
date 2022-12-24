@@ -2,13 +2,18 @@
     x:Class="MyTodo.Views.MemoView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:MyToDo.Common.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:MyTodo.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <cv:IntToVisibilityConverter x:Key="IntToVisibility" />
+    </UserControl.Resources>
     <md:DialogHost>
         <md:DrawerHost IsRightDrawerOpen="{Binding IsRightDrawerOpen}">
             <md:DrawerHost.RightDrawerContent>
@@ -18,29 +23,23 @@
                         DockPanel.Dock="Top"
                         FontSize="20"
                         FontWeight="Bold"
-                        Text="添加待办" />
-                    <StackPanel
-                        Margin="20"
-                        DockPanel.Dock="Top"
-                        Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="状态：" />
-                        <ComboBox>
-                            <ComboBoxItem>待办</ComboBoxItem>
-                            <ComboBoxItem>已完成</ComboBoxItem>
+                        Text="添加备忘" />
 
-                        </ComboBox>
-                    </StackPanel>
                     <TextBox
                         Margin="20"
-                        md:HintAssist.Hint="清输入待办概要"
-                        DockPanel.Dock="Top" />
+                        md:HintAssist.Hint="清输入备忘概要"
+                        DockPanel.Dock="Top"
+                        Text="{Binding CurrentDto.Title}" />
                     <TextBox
                         MinHeight="100"
                         Margin="20"
-                        md:HintAssist.Hint="清输入待办内容"
-                        DockPanel.Dock="Top" />
+                        md:HintAssist.Hint="清输入备忘内容"
+                        DockPanel.Dock="Top"
+                        Text="{Binding CurrentDto.Content}" />
                     <Button
                         Margin="20"
+                        Command="{Binding ExcuteCommand}"
+                        CommandParameter="保存"
                         Content="添加备忘"
                         DockPanel.Dock="Top" />
                 </DockPanel>
@@ -56,13 +55,37 @@
                         Margin="10,5"
                         VerticalAlignment="Center"
                         md:HintAssist.Hint="查找备忘事项"
-                        md:TextFieldAssist.HasClearButton="True" />
+                        md:TextFieldAssist.HasClearButton="True"
+                        Text="{Binding Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding
+                                Key="Enter"
+                                Command="{Binding ExcuteCommand}"
+                                CommandParameter="查询" />
+                        </TextBox.InputBindings>
+                    </TextBox>
                 </StackPanel>
                 <Button
                     Margin="10,5"
                     HorizontalAlignment="Right"
-                    Command="{Binding AddCommand}"
+                    Command="{Binding ExcuteCommand}"
+                    CommandParameter="新增"
                     Content="+添加备忘事项" />
+
+                <StackPanel
+                    Grid.Row="1"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding MemoDtos.Count, Converter={StaticResource IntToVisibility}}">
+                    <Image
+                        Width="120"
+                        Height="120"
+                        Source="/Images/note.png" />
+                    <TextBlock
+                        Margin="0,10"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        Text="请添加一些备忘事项" />
+                </StackPanel>
                 <ScrollViewer Grid.Row="1">
                     <ItemsControl
                         Margin="10"
@@ -81,16 +104,24 @@
                                         MinHeight="180"
                                         MaxHeight="250"
                                         Margin="8">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                                <i:InvokeCommandAction Command="{Binding DataContext.SelectedCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ItemsControl}}" CommandParameter="{Binding}" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="auto" />
                                             <RowDefinition />
                                         </Grid.RowDefinitions>
                                         <md:PopupBox HorizontalAlignment="Right" Panel.ZIndex="1">
-                                            <Button Content="删除" />
+                                            <Button
+                                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Content="删除" />
                                         </md:PopupBox>
                                         <Border
                                             Grid.RowSpan="2"
-                                            Background="Green"
+                                            Background="#1e90ff"
                                             CornerRadius="5" />
                                         <TextBlock
                                             Padding="10,5"
@@ -120,7 +151,6 @@
                                         </Canvas>
                                     </Grid>
                                 </md:TransitioningContent>
-
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
