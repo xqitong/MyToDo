@@ -13,22 +13,25 @@ namespace MyToDo.Service
     public class HttpRestClient
     {
         private readonly string apiUrl;
-        private readonly BaseRequest baseRequest;
+        protected readonly RestClient client;
 
         public HttpRestClient(string apiUrl)
         {
             this.apiUrl = apiUrl;
-        }
+            client = new RestClient();
+
+
+    }
         public async Task<ApiResponse> ExecuteAsync(BaseRequest baseRequest)
         {
 
-            var request = new RestRequest(string.Empty, baseRequest.Method);
+            var request = new RestRequest(apiUrl + baseRequest.Route);
+            request.Method = baseRequest.Method;
             request.AddHeader("Content-Type",baseRequest.ContentType);
-            if (baseRequest.Paremeter != null)
+            if (baseRequest.Parameter != null)
             {
-                request.AddParameter("param", JsonConvert.SerializeObject(baseRequest.Paremeter),ParameterType.RequestBody);
+                request.AddJsonBody(JsonConvert.SerializeObject(baseRequest.Parameter));
             }
-            RestClient client = new RestClient(apiUrl + baseRequest.Route);
             var response = await client.ExecuteAsync(request);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<ApiResponse>(response.Content);
@@ -44,13 +47,14 @@ namespace MyToDo.Service
         public async Task<ApiResponse<T> > ExecuteAsync<T>(BaseRequest baseRequest)
         {
 
-            var request = new RestRequest(string.Empty,baseRequest.Method);
+  
+            var request = new RestRequest(apiUrl + baseRequest.Route);
+            request.Method = baseRequest.Method;
             request.AddHeader("Content-Type", baseRequest.ContentType);
-            if (baseRequest.Paremeter != null)
+            if (baseRequest.Parameter != null)
             {
-                request.AddParameter("param", JsonConvert.SerializeObject(baseRequest.Paremeter), ParameterType.RequestBody);
+                request.AddJsonBody( JsonConvert.SerializeObject(baseRequest.Parameter));
             }
-            RestClient client = new RestClient(apiUrl + baseRequest.Route);
             var response = await client.ExecuteAsync(request);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return JsonConvert.DeserializeObject<ApiResponse<T>>(response.Content);
