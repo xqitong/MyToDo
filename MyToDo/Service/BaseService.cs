@@ -11,7 +11,7 @@ namespace MyToDo.Service
 {
     public class BaseService<TEntity> : IBaseService<TEntity> where TEntity : class
     {
-        private readonly HttpRestClient client;
+        internal readonly HttpRestClient client;
         private readonly string serviceName;
 
         public BaseService(HttpRestClient client, string serviceName)

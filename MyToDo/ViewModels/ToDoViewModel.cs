@@ -25,8 +25,22 @@ namespace MyTodo.ViewModels
 
             ExcuteCommand = new DelegateCommand<string>(Execute);
 			SelectedCommand = new DelegateCommand<ToDoDto>(Selected);
+            DeleteCommand = new DelegateCommand<ToDoDto>(Delete);
 
 
+        }
+
+        private async void Delete(ToDoDto obj)
+        {
+            var deleteResult = await service.DeleteAsync(obj.Id);
+            if(deleteResult.Status)
+            {
+                var model = ToDoDtos.FirstOrDefault(t=> t.Id.Equals(obj.Id));
+                if(model != null) 
+                {
+                    ToDoDtos.Remove(model);
+                }
+            }
         }
 
         private void Execute(string obj)
@@ -101,9 +115,17 @@ namespace MyTodo.ViewModels
 			set { search = value; RaisePropertyChanged(); }
 		}
 
+        private int selectedIndex;
+
+        public int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set { selectedIndex = value; RaisePropertyChanged(); }
+        }
 
 
-		private void Add()
+
+        private void Add()
         {
 			IsRightDrawerOpen = true;
             CurrentDto = new ToDoDto();
@@ -132,11 +154,15 @@ namespace MyTodo.ViewModels
         async private void GetDataAsync()
         {
 			UpdateLoading(true);
-			var todoResult  = await service.GetAllAsync(new QueryParameter() {
-				PageIndex= 0,
-				PageSize= 100,
-				Search = Search
-			});;
+
+            int? status = selectedIndex == 0 ? null :( SelectedIndex == 2? 1: 0);
+            var todoResult = await service.GetAllAsync(new ToDoParameter()
+            {
+                PageIndex = 0,
+                PageSize = 100,
+                Search = Search,
+                Status = status
+            }) ;
 			if (todoResult.Status)
 			{
 				ToDoDtos.Clear();
@@ -178,6 +204,8 @@ namespace MyTodo.ViewModels
 
 		public DelegateCommand<string> ExcuteCommand{ get; private set; }
 		public DelegateCommand<ToDoDto> SelectedCommand{ get; private set; }
+        public DelegateCommand<ToDoDto> DeleteCommand { get; private set; }
+        
 
     }
 }

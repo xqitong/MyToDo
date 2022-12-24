@@ -1,9 +1,11 @@
 ﻿using Arch.EntityFrameworkCore.UnitOfWork;
 using AutoMapper;
 using MyToDo.Api.Context;
+using MyToDo.Api.Migrations;
 using MyToDo.Shared.Contact;
 using MyToDo.Shared.Dtos;
 using MyToDo.Shared.Parameters;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,14 +25,14 @@ namespace MyToDo.Api.Service
         {
             try
             {
-                var todo = mapper.Map<ToDo>(model);
-                await unitOfWork.GetRepository<ToDo>().InsertAsync(todo);
+                var dbModel = mapper.Map<ToDo>(model);
+                await unitOfWork.GetRepository<ToDo>().InsertAsync(dbModel);
                 if (await unitOfWork.SaveChangesAsync() > 0)
                 {
-                    return new ApiResponse{ Status = true, Result = model };
+                    return new ApiResponse{ Status = true, Result = mapper.Map<ToDoDto>(dbModel) };
                 }
                 return new ApiResponse{ Message = "添加数据失败" };
-            }
+            }                                                                       
             catch (System.Exception ex)
             {
 
@@ -44,8 +46,8 @@ namespace MyToDo.Api.Service
             try
             {
                 var repository = unitOfWork.GetRepository<ToDo>();
-                var todo= await repository.GetFirstOrDefaultAsync(predicate: t=> t.Id == id);
-                repository.Delete(todo);
+                var dbModel= await repository.GetFirstOrDefaultAsync(predicate: t=> t.Id == id);
+                repository.Delete(dbModel);
                 if (await unitOfWork.SaveChangesAsync() > 0)
                 {
                     return new ApiResponse{ Status = true };
@@ -64,13 +66,13 @@ namespace MyToDo.Api.Service
             try
             {
                 var repository = unitOfWork.GetRepository<ToDo>();
-                var todos = await repository.GetPagedListAsync(predicate:
+                var dbModels = await repository.GetPagedListAsync(predicate:
                 x => string.IsNullOrWhiteSpace(parameter.Search) ? true : x.Title.Contains(parameter.Search),
                 pageIndex: parameter.PageIndex,
                 pageSize: parameter.PageSize,
                 orderBy: source => source.OrderByDescending(t => t.CreateTime)
                 ); ;
-                return new ApiResponse{ Status = true, Result = todos };
+                return new ApiResponse{ Status = true, Result = dbModels };
 
             }
             catch (System.Exception ex)
@@ -80,15 +82,37 @@ namespace MyToDo.Api.Service
             }
         }
 
+        public async Task<ApiResponse> GetAllAsync(ToDoParameter parameter)
+        {
+            try
+            {
+                var repository = unitOfWork.GetRepository<ToDo>();
+                var dbModels = await repository.GetPagedListAsync(predicate:
+                x => (string.IsNullOrWhiteSpace(parameter.Search) ? true : x.Title.Contains(parameter.Search))
+                &&(parameter.Status == null?true: x.Status.Equals(parameter.Status)),
+                pageIndex: parameter.PageIndex,
+                pageSize: parameter.PageSize,
+                orderBy: source => source.OrderByDescending(t => t.CreateTime)
+                ); ;
+                return new ApiResponse { Status = true, Result = dbModels };
+
+            }
+            catch (System.Exception ex)
+            {
+
+                return new ApiResponse { Message = ex.Message };
+            }
+        }
+
         public async Task<ApiResponse> GetSingleAsync(int id)
         {
             try
             {
                 var repository = unitOfWork.GetRepository<ToDo>();
-                var todo = await repository.GetFirstOrDefaultAsync(predicate:t => t.Id == id);
-                if (todo !=null)
+                var dbModel = await repository.GetFirstOrDefaultAsync(predicate:t => t.Id == id);
+                if (dbModel !=null)
                 {
-                    return new ApiResponse{ Status = true, Result = todo };
+                    return new ApiResponse{ Status = true, Result = dbModel };
                 }
                 return new ApiResponse{ Message = "查找的数据不存在" };
 
@@ -104,16 +128,20 @@ namespace MyToDo.Api.Service
         {
             try
             {
-                var dbTodo = mapper.Map<ToDo>(model);
+                var updateModel = mapper.Map<ToDo>(model);
                 var repository = unitOfWork.GetRepository<ToDo>();
-                var todo = await repository.GetFirstOrDefaultAsync(predicate: t => t.Id == dbTodo.Id);
+                var dbModel = await repository.GetFirstOrDefaultAsync(predicate: t => t.Id == updateModel.Id);
 
-                repository.Update(dbTodo);
+                dbModel.Title = updateModel.Title;
+                dbModel.Content = updateModel.Content;
+                dbModel.Status = updateModel.Status;
+                dbModel.UpdateTime = DateTime.Now;
+                repository.Update(dbModel);
  
                 
                 if (await unitOfWork.SaveChangesAsync() > 0)
                 {
-                    return new ApiResponse{ Status = true, Result = todo };
+                    return new ApiResponse{ Status = true, Result = dbModel };
                 }
                 return new ApiResponse{ Message = "更新失败" };
 
