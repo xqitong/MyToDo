@@ -1,5 +1,6 @@
 ﻿using MyTodo.Common.Models;
 using MyTodo.Extensions;
+using MyToDo.Common;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Regions;
@@ -12,16 +13,17 @@ using System.Threading.Tasks;
 
 namespace MyTodo.ViewModels
 {
-    public class MainViewModel:BindableBase
+    public class MainViewModel : BindableBase, IConfigureService
     {
         public MainViewModel(IRegionManager regionManager)
         {
             MenuBars = new ObservableCollection<MenuBar>();
-            CreateMenuBars();
+
             NavigateCommand = new DelegateCommand<MenuBar>(Navigate);
             this.regionManager = regionManager;
-            GoBackCommand = new DelegateCommand(() => {
-                if (journal !=null && journal.CanGoBack)
+            GoBackCommand = new DelegateCommand(() =>
+            {
+                if (journal != null && journal.CanGoBack)
                 {
                     journal.GoBack();
                 }
@@ -38,10 +40,11 @@ namespace MyTodo.ViewModels
         private void Navigate(MenuBar obj)
         {
             if (obj == null || string.IsNullOrEmpty(obj.NameSpace))
-            {   
+            {
                 return;
             }
-            regionManager.Regions[PrismManager.MainViewRegionName].RequestNavigate(obj.NameSpace, back=>{
+            regionManager.Regions[PrismManager.MainViewRegionName].RequestNavigate(obj.NameSpace, back =>
+            {
                 journal = back.Context.NavigationService.Journal;
             });
 
@@ -53,7 +56,7 @@ namespace MyTodo.ViewModels
         public DelegateCommand GoForwardCommand { get; private set; }
 
 
-        private ObservableCollection<MenuBar>  menuBars;
+        private ObservableCollection<MenuBar> menuBars;
         private readonly IRegionManager regionManager;
         private IRegionNavigationJournal journal;
         public ObservableCollection<MenuBar> MenuBars
@@ -64,11 +67,17 @@ namespace MyTodo.ViewModels
 
         void CreateMenuBars()
         {
-            MenuBars.Add(new MenuBar { Icon = "Home" , Title = "首页", NameSpace = "IndexView" });
+            MenuBars.Add(new MenuBar { Icon = "Home", Title = "首页", NameSpace = "IndexView" });
             MenuBars.Add(new MenuBar { Icon = "NotebookOutline", Title = "待办事项", NameSpace = "ToDoView" });
             MenuBars.Add(new MenuBar { Icon = "NotebookPlus", Title = "备忘录", NameSpace = "MemoView" });
             MenuBars.Add(new MenuBar { Icon = "Cog", Title = "设置", NameSpace = "SettingsView" });
 
+        }
+
+        public void Configure()
+        {
+            CreateMenuBars();
+            regionManager.Regions[PrismManager.MainViewRegionName].RequestNavigate("IndexView");
         }
     }
 }
