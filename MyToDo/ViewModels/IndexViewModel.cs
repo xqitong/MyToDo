@@ -22,6 +22,7 @@ namespace MyTodo.ViewModels
             MemoDtos =new ObservableCollection<MemoDto>();
             ExecuteCommand = new DelegateCommand<string>(Execute);
             this.dialog = dialog;
+            CreateTaskBars();
         }
 
         private void Execute(string obj)
@@ -74,6 +75,14 @@ namespace MyTodo.ViewModels
         {
             get { return memoDto; }
             set { memoDto = value; RaisePropertyChanged(); }
+
+        }
+        void CreateTaskBars()
+        {
+            TaskBars.Add(new TaskBar { Icon = "ClockFast", Title = "汇总", Color = "#ff0ca0ff", Content = "9", Target = "" });
+            TaskBars.Add(new TaskBar { Icon = "ClockCheckOutline", Title = "已完成", Color = "#ff1eca3a", Content = "9", Target = "" });
+            TaskBars.Add(new TaskBar { Icon = "ChartLineVariant", Title = "完成比例", Color = "#ff02c6dc", Content = "100%", Target = "" });
+            TaskBars.Add(new TaskBar { Icon = "PlaylistStar", Title = "备忘录", Color = "#ffffa000", Content = "19", Target = "" });
 
         }
 
