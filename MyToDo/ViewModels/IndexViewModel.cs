@@ -1,8 +1,11 @@
 ﻿using MyTodo.Common.Models;
 using MyToDo.Common;
+using MyToDo.Service;
 using MyToDo.Shared.Dtos;
+using MyToDo.ViewModels;
 using MyToDo.Views.Dialogs;
 using Prism.Commands;
+using Prism.Ioc;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using System;
@@ -14,14 +17,21 @@ using System.Threading.Tasks;
 
 namespace MyTodo.ViewModels
 {
-    public class IndexViewModel : BindableBase
+    public class IndexViewModel : NavigationViewModel
     {
-        public IndexViewModel(IDialogHostService  dialog)
+        private readonly IToDoService toDoService;
+        private readonly IMemoService memoService;
+        private readonly IContainerProvider containerProvider;
+        private readonly IDialogHostService dialog;
+        public IndexViewModel(IContainerProvider containerProvider, IDialogHostService  dialog):base(containerProvider)
         {
             TaskBars = new ObservableCollection<TaskBar>();
             ToDoDtos =new ObservableCollection<ToDoDto>();
             MemoDtos =new ObservableCollection<MemoDto>();
             ExecuteCommand = new DelegateCommand<string>(Execute);
+            this.containerProvider = containerProvider;
+            toDoService = containerProvider.Resolve<IToDoService>();
+            memoService = containerProvider.Resolve<IMemoService>();
             this.dialog = dialog;
             CreateTaskBars();
         }
@@ -40,14 +50,47 @@ namespace MyTodo.ViewModels
             }
         }
 
-        private void AddToDo()
+        private async void AddToDo()
         {
-            dialog.ShowDialog("AddToDoView",null);
+            var dialogResult = await dialog.ShowDialog("AddToDoView",null);
+            if (dialogResult.Result == ButtonResult.OK)
+            {
+                 var model = dialogResult.Parameters.GetValue<ToDoDto>("Value");
+                if (model.Id > 0)
+                {
+                    
+                }
+                else
+                {
+                    var addResult = await toDoService.AddAsync(model);
+                    if (addResult.Status)
+                    {
+                        ToDoDtos.Add(addResult.Result);
+                    }
+                }
+            }
         }
 
-        private void AddMemo()
+        private async void AddMemo()
         {
-            dialog.ShowDialog("AddMemoView",null);
+
+            var dialogResult = await dialog.ShowDialog("AddMemoView", null);
+            if (dialogResult.Result == ButtonResult.OK)
+            {
+                var model = dialogResult.Parameters.GetValue<MemoDto>("Value");
+                if (model.Id > 0)
+                {
+
+                }
+                else
+                {
+                    var addResult = await memoService.AddAsync(model);
+                    if (addResult.Status)
+                    {
+                       MemoDtos.Add(addResult.Result);
+                    }
+                }
+            }
         }
 
         public DelegateCommand<string> ExecuteCommand{ get; private set; }
@@ -70,7 +113,7 @@ namespace MyTodo.ViewModels
 
         }
         private ObservableCollection<MemoDto> memoDto;
-        private readonly IDialogHostService dialog;
+
 
         public ObservableCollection<MemoDto> MemoDtos
         {
