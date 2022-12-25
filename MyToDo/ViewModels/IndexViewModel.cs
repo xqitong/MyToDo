@@ -1,4 +1,5 @@
 ﻿using MyTodo.Common.Models;
+using MyToDo.Common;
 using MyToDo.Shared.Dtos;
 using MyToDo.Views.Dialogs;
 using Prism.Commands;
@@ -15,7 +16,7 @@ namespace MyTodo.ViewModels
 {
     public class IndexViewModel : BindableBase
     {
-        public IndexViewModel(IDialogService  dialog)
+        public IndexViewModel(IDialogHostService  dialog)
         {
             TaskBars = new ObservableCollection<TaskBar>();
             ToDoDtos =new ObservableCollection<ToDoDto>();
@@ -41,12 +42,12 @@ namespace MyTodo.ViewModels
 
         private void AddToDo()
         {
-            dialog.ShowDialog("AddToDoView");
+            dialog.ShowDialog("AddToDoView",null);
         }
 
         private void AddMemo()
         {
-            dialog.ShowDialog("AddMemoView");
+            dialog.ShowDialog("AddMemoView",null);
         }
 
         public DelegateCommand<string> ExecuteCommand{ get; private set; }
@@ -69,7 +70,7 @@ namespace MyTodo.ViewModels
 
         }
         private ObservableCollection<MemoDto> memoDto;
-        private readonly IDialogService dialog;
+        private readonly IDialogHostService dialog;
 
         public ObservableCollection<MemoDto> MemoDtos
         {
