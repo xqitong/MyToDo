@@ -30,10 +30,8 @@ namespace MyToDo.ViewModels.dialogs
 
         private void Cancel()
         {
-            if (DialogHost.IsDialogOpen(DialogHostName))
-            {
-                DialogHost.Close(DialogHostName);
-            }
+            DialogParameters param = new DialogParameters();
+            DialogHost.Close(DialogHostName, new DialogResult(ButtonResult.No, param));
         }
 
         public string DialogHostName { get ; set ; }

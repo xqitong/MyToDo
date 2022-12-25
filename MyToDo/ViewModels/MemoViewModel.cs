@@ -17,6 +17,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MaterialDesignThemes.Wpf;
+using MyToDo.Common;
+using MyToDo.Extensions;
 
 namespace MyToDo.ViewModels
 {
@@ -26,7 +29,7 @@ namespace MyToDo.ViewModels
         {
             this.service = service;
             MemoDtos = new ObservableCollection<MemoDto>();
-
+            dialogHost = containerProvider.Resolve<IDialogHostService>();
             ExcuteCommand = new DelegateCommand<string>(Execute);
             SelectedCommand = new DelegateCommand<MemoDto>(Selected);
             DeleteCommand = new DelegateCommand<MemoDto>(Delete);
@@ -38,6 +41,11 @@ namespace MyToDo.ViewModels
         {
             try
             {
+                var dialogResult = await dialogHost.Question("温馨提示", $"确认删除备忘录事项:{obj.Title}?");
+                if (dialogResult.Result != Prism.Services.Dialogs.ButtonResult.OK)
+                {
+                    return;
+                }
                 UpdateLoading(true);
                 var deleteResult = await service.DeleteAsync(obj.Id);
                 if (deleteResult.Status)
@@ -193,6 +201,8 @@ namespace MyToDo.ViewModels
             get { return memoDtos; }
             set { memoDtos = value; RaisePropertyChanged(); }
         }
+
+        private readonly IDialogHostService dialogHost;
         private bool isRightDrawerOpen;
         private readonly IMemoService service;
 

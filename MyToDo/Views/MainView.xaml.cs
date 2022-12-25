@@ -1,4 +1,5 @@
-﻿using MyToDo.Extensions;
+﻿using MyToDo.Common;
+using MyToDo.Extensions;
 using MyToDo.Views;
 using Prism.Events;
 using System;
@@ -22,7 +23,9 @@ namespace MyTodo.Views
     /// </summary>
     public partial class MainView : Window
     {
-        public MainView(IEventAggregator aggregator)
+        private readonly IDialogHostService dialogHostService;
+
+        public MainView(IEventAggregator aggregator, IDialogHostService dialogHostService )
         {
             InitializeComponent();
             //注册等待消息窗口
@@ -49,7 +52,17 @@ namespace MyTodo.Views
                     this.WindowState = WindowState.Maximized;
                 }
             };
-            btnClose.Click += (s, e) => { this.Close(); };
+            btnClose.Click +=  async (s, e) => 
+            {
+                var dialogResult = await dialogHostService.Question("温馨提示","确认推出系统？");
+                if (dialogResult.Result != Prism.Services.Dialogs.ButtonResult.OK)
+                {
+                    return;
+                }
+                this.Close();
+                
+            };
+
             this.ColorZone.MouseDoubleClick += (s, e) => 
             {
                 if (this.WindowState == WindowState.Normal)
@@ -73,6 +86,7 @@ namespace MyTodo.Views
             {
                 this.drawerHost.IsLeftDrawerOpen = false;
             };
+            this.dialogHostService = dialogHostService;
         }
     }
 }
