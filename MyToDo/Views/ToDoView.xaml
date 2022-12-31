@@ -82,6 +82,11 @@
                         <ComboBoxItem>全部</ComboBoxItem>
                         <ComboBoxItem>待办</ComboBoxItem>
                         <ComboBoxItem>已完成</ComboBoxItem>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="SelectionChanged">
+                                <i:InvokeCommandAction Command="{Binding ExcuteCommand}" CommandParameter="查询" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                     </ComboBox>
                 </StackPanel>
                 <Button
