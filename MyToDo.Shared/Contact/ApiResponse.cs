@@ -4,7 +4,7 @@
     { 
  
         public string Message { get; set; }
-        public bool Status { get; set; }
+        public bool Status { get; set; }   = false;
         public object Result { get; set; }
 
     }
@@ -12,7 +12,7 @@
     {
 
         public string Message { get; set; }
-        public bool Status { get; set; }
+        public bool Status { get; set; } = false;
         public T Result { get; set; }
 
     }

@@ -8,6 +8,9 @@ using MyToDo.Shared.Parameters;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Security.Cryptography.Xml;
 
 namespace MyToDo.Api.Service
 {
@@ -121,6 +124,32 @@ namespace MyToDo.Api.Service
             {
 
                 return new ApiResponse{ Message = ex.Message };
+            }
+        }
+
+        public async Task<ApiResponse> Summary()
+        {
+            try
+            {
+                var todos = await unitOfWork.GetRepository<ToDo>().GetAllAsync(
+                orderBy: source => source.OrderByDescending(t=> t.CreateTime));
+
+                var memos = await unitOfWork.GetRepository<Memo>().GetAllAsync(
+                orderBy: source => source.OrderByDescending(t => t.CreateTime));
+
+                SummaryDto summary = new SummaryDto();
+                summary.Sum = todos.Count();
+                summary.CompletedCount  = todos.Where(t => t.Status == 1).Count();
+                summary.CompletedRatio = (summary.CompletedCount / (double)summary.Sum).ToString("0%");
+                summary.MemoCount = memos.Count();
+                summary.ToDoList = new ObservableCollection<ToDoDto>(mapper.Map<List<ToDoDto>>(todos.Where(t => t.Status == 0)));
+                summary.MemoList = new ObservableCollection<MemoDto>(mapper.Map<List<MemoDto>>(memos));
+                return new ApiResponse{ Status = true,Result = summary};
+                }
+            catch (Exception ex)
+            {
+
+                return new ApiResponse { Message = ex.Message };
             }
         }
 

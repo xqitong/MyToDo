@@ -14,7 +14,7 @@ namespace MyTodo.Common.Models
 		public string Icon
 		{
 			get { return icon; }
-			set { icon = value; }
+			set { icon = value; RaisePropertyChanged(); }
 		}
 
 		private string title;
@@ -22,7 +22,7 @@ namespace MyTodo.Common.Models
 		public string Title
 		{
 			get { return title; }
-			set { title = value; }
+			set { title = value; RaisePropertyChanged(); }
 		}
 
 		private string content;
@@ -30,7 +30,7 @@ namespace MyTodo.Common.Models
 		public string Content
 		{
 			get { return content; }
-			set { content = value; }
+			set { content = value; RaisePropertyChanged(); }
 		}
 
 		private string color;
@@ -38,7 +38,7 @@ namespace MyTodo.Common.Models
 		public string Color
 		{
 			get { return color; }
-			set { color = value; }
+			set { color = value; RaisePropertyChanged(); }
 		}
 
 		private string target;
@@ -46,7 +46,7 @@ namespace MyTodo.Common.Models
 		public string Target
 		{
 			get { return target; }
-			set { target = value; }
+			set { target = value; RaisePropertyChanged(); }
 		}
 
 

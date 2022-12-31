@@ -26,5 +26,13 @@ namespace MyToDo.Service
             $"&Status={parameter.Status}";
             return await client.ExecuteAsync<PagedList<ToDoDto>>(request);
         }
+
+        public async Task<ApiResponse<SummaryDto>> SummaryAsync()
+        {
+            BaseRequest request= new BaseRequest();
+            request.Method = RestSharp.Method.Get;
+            request.Route = "api/ToDo/Summary";
+            return await client.ExecuteAsync<SummaryDto>(request);
+        }
     }
 }

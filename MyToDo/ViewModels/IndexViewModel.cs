@@ -8,10 +8,12 @@ using MyToDo.Views.Dialogs;
 using Prism.Commands;
 using Prism.Ioc;
 using Prism.Mvvm;
+using Prism.Regions;
 using Prism.Services.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,8 +29,6 @@ namespace MyTodo.ViewModels
         public IndexViewModel(IContainerProvider containerProvider, IDialogHostService  dialog):base(containerProvider)
         {
             CreateTaskBars();
-            ToDoDtos =new ObservableCollection<ToDoDto>();
-            MemoDtos =new ObservableCollection<MemoDto>();
             ExecuteCommand = new DelegateCommand<string>(Execute);
             this.containerProvider = containerProvider;
             toDoService = containerProvider.Resolve<IToDoService>();
@@ -46,10 +46,10 @@ namespace MyTodo.ViewModels
             var updateResult = await toDoService.UpdateAsync(completedModel);
             if (updateResult.Status)
             {
-                var removedModel = ToDoDtos.FirstOrDefault(t => t.Id.Equals(completedModel.Id));
+                var removedModel = Summary.ToDoList.FirstOrDefault(t => t.Id.Equals(completedModel.Id));
                 if (removedModel != null)
                 {
-                    ToDoDtos.Remove(removedModel);
+                    Summary.ToDoList.Remove(removedModel);
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace MyTodo.ViewModels
                     var updateResult = await toDoService.UpdateAsync(newModel);
                     if (updateResult.Status)
                     {
-                        var updateModel =  ToDoDtos.FirstOrDefault(t=> t.Id.Equals(newModel.Id));
+                        var updateModel = Summary.ToDoList.FirstOrDefault(t=> t.Id.Equals(newModel.Id));
                         if (updateModel != null)
                         {
                             updateModel.Title = newModel.Title;
@@ -97,7 +97,7 @@ namespace MyTodo.ViewModels
                     var addResult = await toDoService.AddAsync(newModel);
                     if (addResult.Status)
                     {
-                        ToDoDtos.Add(addResult.Result);
+                        Summary.ToDoList.Add(addResult.Result);
                     }
                 }
             }
@@ -120,7 +120,7 @@ namespace MyTodo.ViewModels
                     var updateResult = await memoService.UpdateAsync(newModel);
                     if (updateResult.Status)
                     {
-                        var updateModel = MemoDtos.FirstOrDefault(t => t.Id.Equals(newModel.Id));
+                        var updateModel = Summary.MemoList.FirstOrDefault(t => t.Id.Equals(newModel.Id));
                         if (updateModel != null)
                         {
                             updateModel.Title = newModel.Title;
@@ -133,7 +133,7 @@ namespace MyTodo.ViewModels
                     var addResult = await memoService.AddAsync(newModel);
                     if (addResult.Status)
                     {
-                       MemoDtos.Add(addResult.Result);
+                        Summary.MemoList.Add(addResult.Result);
                     }
                 }
             }
@@ -154,30 +154,59 @@ namespace MyTodo.ViewModels
             set { taskBars = value; RaisePropertyChanged(); }
 
         }
-        private ObservableCollection<ToDoDto> toDoDtos;
+        //private ObservableCollection<ToDoDto> toDoDtos;
 
-        public ObservableCollection<ToDoDto> ToDoDtos
+        //public ObservableCollection<ToDoDto> ToDoDtos
+        //{
+        //    get { return toDoDtos; }
+        //    set { toDoDtos = value; RaisePropertyChanged(); }
+
+        //}
+        //private ObservableCollection<MemoDto> memoDto;
+
+
+        //public ObservableCollection<MemoDto> MemoDtos
+        //{
+        //    get { return memoDto; }
+        //    set { memoDto = value; RaisePropertyChanged(); }
+
+        //}
+
+        private SummaryDto summary;
+
+
+        public SummaryDto Summary
         {
-            get { return toDoDtos; }
-            set { toDoDtos = value; RaisePropertyChanged(); }
-
-        }
-        private ObservableCollection<MemoDto> memoDto;
-
-
-        public ObservableCollection<MemoDto> MemoDtos
-        {
-            get { return memoDto; }
-            set { memoDto = value; RaisePropertyChanged(); }
+            get { return summary; }
+            set { summary = value; RaisePropertyChanged(); }
 
         }
         void CreateTaskBars()
         {
             TaskBars = new ObservableCollection<TaskBar>();
-            TaskBars.Add(new TaskBar { Icon = "ClockFast", Title = "汇总", Color = "#ff0ca0ff", Content = "9", Target = "" });
-            TaskBars.Add(new TaskBar { Icon = "ClockCheckOutline", Title = "已完成", Color = "#ff1eca3a", Content = "9", Target = "" });
-            TaskBars.Add(new TaskBar { Icon = "ChartLineVariant", Title = "完成比例", Color = "#ff02c6dc", Content = "100%", Target = "" });
-            TaskBars.Add(new TaskBar { Icon = "PlaylistStar", Title = "备忘录", Color = "#ffffa000", Content = "19", Target = "" });
+            TaskBars.Add(new TaskBar { Icon = "ClockFast", Title = "汇总", Color = "#ff0ca0ff", Target = "" });
+            TaskBars.Add(new TaskBar { Icon = "ClockCheckOutline", Title = "已完成", Color = "#ff1eca3a", Target = "" });
+            TaskBars.Add(new TaskBar { Icon = "ChartLineVariant", Title = "完成比例", Color = "#ff02c6dc",  Target = "" });
+            TaskBars.Add(new TaskBar { Icon = "PlaylistStar", Title = "备忘录", Color = "#ffffa000", Target = "" });
+
+        }
+
+        public override async void OnNavigatedTo(NavigationContext navigationContext)
+        {
+            var summaryResult = await toDoService.SummaryAsync();
+            if (summaryResult.Status)
+            {
+                Summary = summaryResult.Result;
+                Refresh();
+            }
+            base.OnNavigatedTo(navigationContext);
+        }
+        void Refresh()
+        {
+            TaskBars[0].Content = Summary.Sum.ToString();
+            TaskBars[1].Content = Summary.CompletedCount.ToString();
+            TaskBars[2].Content = Summary.CompletedRatio;
+            TaskBars[3].Content = Summary.MemoCount.ToString();
 
         }
 
