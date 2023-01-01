@@ -200,6 +200,15 @@ namespace MyTodo.ViewModels
         public override void OnNavigatedTo(NavigationContext navigationContext)
         {
             base.OnNavigatedTo(navigationContext);
+            if (navigationContext.Parameters.ContainsKey("Value"))
+            {
+                selectedIndex = navigationContext.Parameters.GetValue<int>("Value");
+            }
+            else
+            {
+                selectedIndex= 0;
+            }
+            
 			GetDataAsync();
         }
         private ObservableCollection<ToDoDto> toDoDtos;
