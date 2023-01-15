@@ -28,6 +28,11 @@ namespace MyTodo.Views
         public MainView(IEventAggregator aggregator, IDialogHostService dialogHostService )
         {
             InitializeComponent();
+            //注册提示消息
+            aggregator.RegisterMessage(arg =>{
+
+                this.snackBar.MessageQueue.Enqueue(arg);
+            });
             //注册等待消息窗口
             aggregator.Register(arg => {
                 DialogHost.IsOpen = arg.IsOpen;

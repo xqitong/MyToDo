@@ -2,6 +2,7 @@
 using MyTodo.Common.Models;
 using MyTodo.Extensions;
 using MyToDo.Common;
+using MyToDo.Extensions;
 using MyToDo.Service;
 using MyToDo.Shared.Dtos;
 using MyToDo.ViewModels;
@@ -63,19 +64,34 @@ namespace MyTodo.ViewModels
 
         private async void ToDoCompleted(ToDoDto completedModel)
         {
-            var updateResult = await toDoService.UpdateAsync(completedModel);
-            if (updateResult.Status)
+            try
             {
-                var removedModel = Summary.ToDoList.FirstOrDefault(t => t.Id.Equals(completedModel.Id));
-                if (removedModel != null)
+                UpdateLoading(true);
+                var updateResult = await toDoService.UpdateAsync(completedModel);
+                if (updateResult.Status)
                 {
-                    Summary.ToDoList.Remove(removedModel);
-                    Summary.CompletedCount += 1;
-                    Summary.CompletedRatio = (Summary.CompletedCount / (double)Summary.Sum).ToString("0%");
-                    this.Refresh();
+                    var removedModel = Summary.ToDoList.FirstOrDefault(t => t.Id.Equals(completedModel.Id));
+                    if (removedModel != null)
+                    {
+                        Summary.ToDoList.Remove(removedModel);
+                        Summary.CompletedCount += 1;
+                        Summary.CompletedRatio = (Summary.CompletedCount / (double)Summary.Sum).ToString("0%");
+                        this.Refresh();
 
+                    }
+                    aggregator.SendMessage("已完成!");
                 }
             }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally
+            {
+                UpdateLoading(false);
+            }
+
         }
 
         private void Execute(string obj)
@@ -102,36 +118,50 @@ namespace MyTodo.ViewModels
             var dialogResult = await dialog.ShowDialog("AddToDoView", param);
             if (dialogResult.Result == ButtonResult.OK)
             {
-                 var newModel = dialogResult.Parameters.GetValue<ToDoDto>("Value");
-                if (newModel.Id > 0)
+                try
                 {
-                    var updateResult = await toDoService.UpdateAsync(newModel);
-                    if (updateResult.Status)
+                    UpdateLoading(true);
+                    var newModel = dialogResult.Parameters.GetValue<ToDoDto>("Value");
+                    if (newModel.Id > 0)
                     {
-                        var updateModel = Summary.ToDoList.FirstOrDefault(t=> t.Id.Equals(newModel.Id));
-                        if (updateModel != null)
+                        var updateResult = await toDoService.UpdateAsync(newModel);
+                        if (updateResult.Status)
                         {
-                            updateModel.Title = newModel.Title;
-                            updateModel.Content = newModel.Content;
+                            var updateModel = Summary.ToDoList.FirstOrDefault(t => t.Id.Equals(newModel.Id));
+                            if (updateModel != null)
+                            {
+                                updateModel.Title = newModel.Title;
+                                updateModel.Content = newModel.Content;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    var addResult = await toDoService.AddAsync(newModel);
-                    if (addResult.Status)
+                    else
                     {
-                        Summary.Sum += 1;
+                        var addResult = await toDoService.AddAsync(newModel);
+                        if (addResult.Status)
+                        {
+                            Summary.Sum += 1;
 
-                        if (addResult.Result.Status == 1)
-                        {
-                            Summary.CompletedCount += 1;
+                            if (addResult.Result.Status == 1)
+                            {
+                                Summary.CompletedCount += 1;
+                            }
+                            Summary.CompletedRatio = (Summary.CompletedCount / (double)Summary.Sum).ToString("0%");
+                            Summary.ToDoList.Add(addResult.Result);
+                            this.Refresh();
                         }
-                        Summary.CompletedRatio = (Summary.CompletedCount / (double)Summary.Sum).ToString("0%");
-                        Summary.ToDoList.Add(addResult.Result);
-                        this.Refresh();
                     }
                 }
+                catch (Exception)
+                {
+
+                    throw;
+                } 
+                finally
+                {
+                    UpdateLoading(false);
+                }
+
             }
         }
 
@@ -146,28 +176,42 @@ namespace MyTodo.ViewModels
             var dialogResult = await dialog.ShowDialog("AddMemoView", param);
             if (dialogResult.Result == ButtonResult.OK)
             {
-                var newModel = dialogResult.Parameters.GetValue<MemoDto>("Value");
-                if (newModel.Id > 0)
+                try
                 {
-                    var updateResult = await memoService.UpdateAsync(newModel);
-                    if (updateResult.Status)
+                    UpdateLoading(true);
+                    var newModel = dialogResult.Parameters.GetValue<MemoDto>("Value");
+                    if (newModel.Id > 0)
                     {
-                        var updateModel = Summary.MemoList.FirstOrDefault(t => t.Id.Equals(newModel.Id));
-                        if (updateModel != null)
+                        var updateResult = await memoService.UpdateAsync(newModel);
+                        if (updateResult.Status)
                         {
-                            updateModel.Title = newModel.Title;
-                            updateModel.Content = newModel.Content;
+                            var updateModel = Summary.MemoList.FirstOrDefault(t => t.Id.Equals(newModel.Id));
+                            if (updateModel != null)
+                            {
+                                updateModel.Title = newModel.Title;
+                                updateModel.Content = newModel.Content;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var addResult = await memoService.AddAsync(newModel);
+                        if (addResult.Status)
+                        {
+                            Summary.MemoList.Add(addResult.Result);
                         }
                     }
                 }
-                else
+                catch (Exception)
                 {
-                    var addResult = await memoService.AddAsync(newModel);
-                    if (addResult.Status)
-                    {
-                        Summary.MemoList.Add(addResult.Result);
-                    }
+
+                    throw;
                 }
+                finally
+                {
+                    UpdateLoading(false);
+                }
+
             }
         }
 
