@@ -9,7 +9,7 @@ using System.Windows.Controls;
 
 namespace MyToDo.Extensions
 {
-    public class PassWordExtension
+    public class PassWordExtensions
     {
 
         public static string GetPassWord(DependencyObject obj)
@@ -24,7 +24,7 @@ namespace MyToDo.Extensions
 
         // Using a DependencyProperty as the backing store for PassWord.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty PassWordProperty =
-            DependencyProperty.RegisterAttached("PassWord", typeof(string), typeof(PassWordExtension), new PropertyMetadata(string.Empty,OnPassWordPropertyChanged));
+            DependencyProperty.RegisterAttached("PassWord", typeof(string), typeof(PassWordExtensions), new PropertyMetadata(string.Empty,OnPassWordPropertyChanged));
 
         static void OnPassWordPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
@@ -48,10 +48,10 @@ namespace MyToDo.Extensions
         {
             PasswordBox passwordBox= sender as PasswordBox;
  
-            string password = PassWordExtension.GetPassWord(passwordBox);
+            string password = PassWordExtensions.GetPassWord(passwordBox);
             if (passwordBox != null && passwordBox.Password != password) 
             {
-                PassWordExtension.SetPassWord(passwordBox, password); 
+                PassWordExtensions.SetPassWord(passwordBox, passwordBox.Password); 
             }
 
         }

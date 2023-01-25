@@ -1,4 +1,6 @@
-﻿using MyToDo.Service;
+﻿using DryIoc;
+using MyToDo.Service;
+using MyToDo.Shared.Dtos;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
@@ -18,16 +20,56 @@ namespace MyToDo.ViewModels.dialogs
         {
             ExecuteCommand = new DelegateCommand<string>(Execute);
             this.loginService = loginService;
+            RegisterUserDto = new RegisterUserDto();
         }
 
         private void Execute(string obj)
         {
             switch (obj)
             {
-                case "Login": Login(); break;
-                case "LogOut": LogOut(); break;
+                case "Login": 
+                    Login(); 
+                    break;
+                case "LogOut": 
+                    LogOut(); 
+                    break;
+                case "Go":
+                    SelectedIndex = 1;
+                    break;
+                case "Return":
+                    SelectedIndex = 0;
+                    break;
+                case "Register":
+                    Register();
+                    break;
                 default:
                     break;
+            }
+        }
+
+        private async void Register()
+        {
+            if (string.IsNullOrWhiteSpace(RegisterUserDto.Account) ||
+            string.IsNullOrWhiteSpace(RegisterUserDto.Name) ||
+            string.IsNullOrWhiteSpace(RegisterUserDto.Password) ||
+            string.IsNullOrWhiteSpace(RegisterUserDto.NewPassword))
+            {
+                return;
+            }
+            if (RegisterUserDto.Password != RegisterUserDto.NewPassword)
+            {
+                return;
+            }
+            var registerResult = await loginService.RegisterAsync(new Shared.Dtos.UserDto()
+            {
+                Account = RegisterUserDto.Account,
+                Name= RegisterUserDto.Name,
+                Password= RegisterUserDto.Password,
+            });
+            if (registerResult!=null && registerResult.Status)
+            {
+               //register success 
+               SelectedIndex = 0; 
             }
         }
 
@@ -44,6 +86,7 @@ namespace MyToDo.ViewModels.dialogs
             }
             var loginResult = await loginService.LoginAsync(new Shared.Dtos.UserDto()
             { 
+                Name = "test", //不能为空，要不回请求失败
                 Account = Account,
                 Password = PassWord
             });
@@ -74,7 +117,7 @@ namespace MyToDo.ViewModels.dialogs
 
         }
 
-        public DelegateCommand<string> ExecuteCommand;
+        public DelegateCommand<string> ExecuteCommand { get; set; }
 
         private string account;
 
@@ -91,6 +134,21 @@ namespace MyToDo.ViewModels.dialogs
         {
             get { return passWord; }
             set { passWord = value; RaisePropertyChanged(); }
+        }
+
+        private int selectedIndex;
+
+        public int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set { selectedIndex = value; RaisePropertyChanged(); }
+        }
+        private RegisterUserDto registerUserDto;
+
+        public RegisterUserDto RegisterUserDto
+        {
+            get { return registerUserDto; }
+            set { registerUserDto = value; }
         }
 
 
