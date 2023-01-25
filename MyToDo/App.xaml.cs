@@ -35,7 +35,7 @@ namespace MyTodo
             dialog.ShowDialog("LoginView",callback=>{
                 if (callback.Result != ButtonResult.OK)
                 {
-                    Application.Current.Shutdown();
+                    Environment.Exit(0);
                     return;
                 }
 
@@ -48,7 +48,20 @@ namespace MyTodo
             base.OnInitialized();
 
         }
+        public static void Logout(IContainerProvider container)
+        {
+            Current.MainWindow.Hide();
+            var dialog = container.Resolve<IDialogService>();
+            dialog.ShowDialog("LoginView", callback => {
+                if (callback.Result != ButtonResult.OK)
+                {
+                    Environment.Exit(0);
+                    return;
+                }
+                Current.MainWindow.Show();
+            });
 
+        }
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.GetContainer()

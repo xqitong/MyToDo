@@ -31,7 +31,7 @@ namespace MyTodo.ViewModels
         private readonly IRegionManager regionManager; 
         public IndexViewModel(IContainerProvider containerProvider, IDialogHostService  dialog):base(containerProvider)
         {
-            Title = $"你好，QT {DateTime.Now.GetDateTimeFormats('D')[1].ToString()}";
+            Title = $"你好，{AppSession.UserName} {DateTime.Now.GetDateTimeFormats('D')[1].ToString()}";
             CreateTaskBars();
             ExecuteCommand = new DelegateCommand<string>(Execute);
             this.containerProvider = containerProvider;

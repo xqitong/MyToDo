@@ -1,4 +1,5 @@
 ﻿using DryIoc;
+using MyToDo.Common;
 using MyToDo.Extensions;
 using MyToDo.Service;
 using MyToDo.Shared.Dtos;
@@ -102,6 +103,7 @@ namespace MyToDo.ViewModels.dialogs
             });
             if (loginResult.Status)
             {
+                AppSession.UserName = loginResult.Result.Name;
                 RequestClose?.Invoke(new DialogResult(ButtonResult.OK));
                 return;
             }
