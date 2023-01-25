@@ -9,6 +9,7 @@ using MyToDo.Views;
 using MyToDo.Views.Dialogs;
 using Prism.DryIoc;
 using Prism.Ioc;
+using Prism.Services.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -30,6 +31,15 @@ namespace MyTodo
         }
         protected override void OnInitialized()
         {
+            var dialog = Container.Resolve<IDialogService>();
+            dialog.ShowDialog("LoginView",callback=>{
+                if (callback.Result == ButtonResult.OK)
+                {
+                    Application.Current.Shutdown();
+                    return;
+                }
+
+            });
             var service = App.Current.MainWindow.DataContext as IConfigureService;
             if (service !=null)
             {
@@ -53,6 +63,7 @@ namespace MyTodo
             containerRegistry.RegisterForNavigation<MsgView, MsgViewModel>();
             //
             containerRegistry.Register<IDialogHostService, DialogHostService>();
+            containerRegistry.RegisterDialog<LoginView, LoginViewModel>();
             //
             containerRegistry.RegisterForNavigation<SkinView, SkinViewModel>();
             containerRegistry.RegisterForNavigation<AboutView>();
