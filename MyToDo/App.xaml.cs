@@ -58,6 +58,11 @@ namespace MyTodo
                     Environment.Exit(0);
                     return;
                 }
+                var service = App.Current.MainWindow.DataContext as IConfigureService;
+                if (service != null)
+                {
+                    service.Configure();
+                }
                 Current.MainWindow.Show();
             });
 
