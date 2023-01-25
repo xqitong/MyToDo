@@ -27,7 +27,11 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Image Margin="50" Source="/Images/Login.png" />
-
+        <md:Snackbar
+            x:Name="LoginSnackBar"
+            Grid.ColumnSpan="2"
+            Panel.ZIndex="1"
+            MessageQueue="{md:MessageQueue}" />
         <md:Transitioner Grid.Column="1" SelectedIndex="{Binding SelectedIndex}">
             <md:TransitionerSlide>
                 <DockPanel Margin="15" VerticalAlignment="Center">

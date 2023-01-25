@@ -1,7 +1,9 @@
 ﻿using DryIoc;
+using MyToDo.Extensions;
 using MyToDo.Service;
 using MyToDo.Shared.Dtos;
 using Prism.Commands;
+using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using System;
@@ -14,13 +16,16 @@ using System.Threading.Tasks;
 
 namespace MyToDo.ViewModels.dialogs
 {
+   
     public class LoginViewModel : BindableBase, IDialogAware
     {
-        public LoginViewModel(ILoginService loginService)
+        private readonly IEventAggregator aggregator;
+        public LoginViewModel(ILoginService loginService, IEventAggregator aggregator)
         {
             ExecuteCommand = new DelegateCommand<string>(Execute);
             this.loginService = loginService;
             RegisterUserDto = new RegisterUserDto();
+            this.aggregator = aggregator;
         }
 
         private void Execute(string obj)
@@ -54,10 +59,12 @@ namespace MyToDo.ViewModels.dialogs
             string.IsNullOrWhiteSpace(RegisterUserDto.Password) ||
             string.IsNullOrWhiteSpace(RegisterUserDto.NewPassword))
             {
+                aggregator.SendMessage("需要的信息不全","Login");
                 return;
             }
             if (RegisterUserDto.Password != RegisterUserDto.NewPassword)
             {
+                aggregator.SendMessage("输入的密码不一致", "Login");
                 return;
             }
             var registerResult = await loginService.RegisterAsync(new Shared.Dtos.UserDto()
@@ -68,9 +75,12 @@ namespace MyToDo.ViewModels.dialogs
             });
             if (registerResult!=null && registerResult.Status)
             {
-               //register success 
-               SelectedIndex = 0; 
+                //register success
+                aggregator.SendMessage("注册成功", "Login");
+                SelectedIndex = 0;
+                return;
             }
+            aggregator.SendMessage(registerResult.Message, "Login");
         }
 
         private void LogOut()
@@ -93,9 +103,10 @@ namespace MyToDo.ViewModels.dialogs
             if (loginResult.Status)
             {
                 RequestClose?.Invoke(new DialogResult(ButtonResult.OK));
+                return;
             }
             // login failed
-
+            aggregator.SendMessage(loginResult.Message, "Login");
         }
 
         public string Title { get; set; } = "ToDo";
